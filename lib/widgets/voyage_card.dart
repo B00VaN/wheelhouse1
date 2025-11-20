@@ -8,6 +8,9 @@ class VoyageCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final mq = MediaQuery.of(context);
+    final width = mq.size.width;
+    final fabPadding = width < 360 ? 8.0 : 12.0;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -32,13 +35,21 @@ class VoyageCard extends StatelessWidget {
                   ],
                 ),
               ),
-              FloatingActionButton(
-                onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddVoyageScreen()));
-                },
-                backgroundColor: colors.secondary,
-                mini: true,
-                child: Icon(Icons.add, color: colors.onSecondary),
+              // Purple circular FAB styled to match screenshot
+              Material(
+                color: colors.secondary,
+                shape: const CircleBorder(),
+                elevation: 6,
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddVoyageScreen()));
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(fabPadding),
+                    child: Icon(Icons.add, color: colors.onSecondary, size: width < 360 ? 18 : 20),
+                  ),
+                ),
               )
             ],
           )
