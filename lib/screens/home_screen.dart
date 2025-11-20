@@ -2,9 +2,20 @@ import 'package:flutter/material.dart';
 import '../widgets/ship_card.dart';
 import '../widgets/voyage_card.dart';
 import '../theme/theme_controller.dart';
+import '../models/voyage.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Voyage> _voyages = [];
+
+  // No persistence: keep voyages in-memory. New voyages are added via the
+  // `onCreate` callback passed to `VoyageCard`.
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +23,7 @@ class HomeScreen extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: colors.background,
+      backgroundColor: colors.surface,
       appBar: AppBar(
         title: Text(
           'WHEELHOUSE',
@@ -54,7 +65,9 @@ class HomeScreen extends StatelessWidget {
                 accountName: Text('Montse Hall', style: TextStyle(color: headerTextColor, fontWeight: FontWeight.w600)),
                 accountEmail: Text('montse.hall@mymail.com', style: TextStyle(color: headerTextColor.withOpacity(0.9))),
                 currentAccountPicture: CircleAvatar(
-                  backgroundImage: AssetImage('assets/avatar.png'),
+                  // Use a simple icon fallback to avoid missing asset crashes.
+                  backgroundColor: headerColor.withOpacity(0.9),
+                  child: Icon(Icons.person, color: headerTextColor),
                 ),
                 decoration: BoxDecoration(
                   color: headerColor,
@@ -101,10 +114,13 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: const [
-            ShipCard(),
-            SizedBox(height: 16),
-            VoyageCard(),
+          children: [
+            const ShipCard(),
+            const SizedBox(height: 16),
+            if (_voyages.isEmpty)
+              VoyageCard(onCreate: (v) => setState(() => _voyages.insert(0, v)))
+            else
+              VoyageCard(voyage: _voyages.first, onCreate: (v) => setState(() => _voyages.insert(0, v))),
           ],
         ),
       ),

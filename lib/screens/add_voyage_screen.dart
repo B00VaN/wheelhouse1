@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/ship_card.dart';
+import '../models/voyage.dart';
 
 class AddVoyageScreen extends StatefulWidget {
   const AddVoyageScreen({super.key});
@@ -82,11 +83,11 @@ class _AddVoyageScreenState extends State<AddVoyageScreen> {
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: colors.surfaceVariant),
+            borderSide: BorderSide(color: colors.surfaceContainerHighest),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: colors.surfaceVariant),
+            borderSide: BorderSide(color: colors.surfaceContainerHighest),
           ),
         ),
       ),
@@ -156,10 +157,10 @@ class _AddVoyageScreenState extends State<AddVoyageScreen> {
         // Use surface background for this page's AppBar so the title can
         // use onBackground (black in light theme, white in dark theme).
         backgroundColor: colors.surface,
-        iconTheme: IconThemeData(color: colors.onBackground),
+        iconTheme: IconThemeData(color: colors.onSurface),
         title: Text(
           'ADD NEW VOYAGE',
-          style: text.titleLarge?.copyWith(color: colors.onBackground, fontWeight: FontWeight.w600, fontSize: titleSize),
+          style: text.titleLarge?.copyWith(color: colors.onSurface, fontWeight: FontWeight.w600, fontSize: titleSize),
         ),
       ),
       body: SingleChildScrollView(
@@ -169,7 +170,7 @@ class _AddVoyageScreenState extends State<AddVoyageScreen> {
           children: [
             const ShipCard(),
             const SizedBox(height: 16),
-            Text('VOYAGE DETAILS', style: text.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: colors.onBackground, fontSize: sectionTitleSize)),
+            Text('VOYAGE DETAILS', style: text.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: colors.onSurface, fontSize: sectionTitleSize)),
             const SizedBox(height: 8),
 
             _textField(context, 'voyageTitle', 'Voyage Title', hintText: 'Enter Voyage Title'),
@@ -206,7 +207,7 @@ class _AddVoyageScreenState extends State<AddVoyageScreen> {
             _textField(context, 'charterer', 'Charterer'),
 
             const SizedBox(height: 12),
-            Text('Estimated Departure Draught:', style: text.bodyMedium?.copyWith(color: colors.onBackground)),
+            Text('Estimated Departure Draught:', style: text.bodyMedium?.copyWith(color: colors.onSurface)),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -217,7 +218,7 @@ class _AddVoyageScreenState extends State<AddVoyageScreen> {
             ),
 
             const SizedBox(height: 24),
-            Text('Optimization Settings:', style: text.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: colors.onBackground)),
+            Text('Optimization Settings:', style: text.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: colors.onSurface)),
             const SizedBox(height: 8),
             Row(children: [
               Expanded(child: ListTile(
@@ -230,12 +231,12 @@ class _AddVoyageScreenState extends State<AddVoyageScreen> {
                       _fixedEtaSelected = true;
                     });
                   },
-                  fillColor: MaterialStateProperty.resolveWith<Color?>((states) {
-                    if (states.contains(MaterialState.selected)) return colors.secondary;
+                  fillColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                    if (states.contains(WidgetState.selected)) return colors.secondary;
                     return colors.onSurface;
                   }),
                 ),
-                title: Text('Fixed ETA', style: TextStyle(color: colors.onBackground)),
+                title: Text('Fixed ETA', style: TextStyle(color: colors.onSurface)),
               )),
               Expanded(child: ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -247,17 +248,17 @@ class _AddVoyageScreenState extends State<AddVoyageScreen> {
                       _fixedEtaSelected = false;
                     });
                   },
-                  fillColor: MaterialStateProperty.resolveWith<Color?>((states) {
-                    if (states.contains(MaterialState.selected)) return colors.secondary;
+                  fillColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                    if (states.contains(WidgetState.selected)) return colors.secondary;
                     return colors.onSurface;
                   }),
                 ),
-                title: Text('Save Fuel', style: TextStyle(color: colors.onBackground)),
+                title: Text('Save Fuel', style: TextStyle(color: colors.onSurface)),
               )),
             ]),
 
             const SizedBox(height: 12),
-            Text('Upper Limit Settings:', style: text.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: colors.onBackground)),
+            Text('Upper Limit Settings:', style: text.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: colors.onSurface)),
             const SizedBox(height: 8),
 
             Row(
@@ -281,8 +282,28 @@ class _AddVoyageScreenState extends State<AddVoyageScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).pop();
+        onPressed: () async {
+          // Build Voyage from controllers
+          final id = DateTime.now().millisecondsSinceEpoch.toString();
+          final v = Voyage(
+            id: id,
+            title: _controllers['voyageTitle']?.text ?? '',
+            departurePort: _controllers['departurePort']?.text ?? '',
+            arrivalPort: _controllers['arrivalPort']?.text ?? '',
+            etdLocal: _controllers['etdLocal']?.text ?? '',
+            etaLocal: _controllers['etaLocal']?.text ?? '',
+            etbLocal: _controllers['etbLocal']?.text ?? '',
+            fixedEta: _fixedEtaSelected,
+            upperLimits: {
+              'speed': _controllers['upper_speed']?.text ?? '',
+              'hfo': _controllers['upper_hfo']?.text ?? '',
+              'rpm': _controllers['upper_rpm']?.text ?? '',
+              'load': _controllers['upper_load']?.text ?? '',
+            },
+          );
+
+          // Return the created Voyage to the caller (in-memory UI flow).
+          Navigator.of(context).pop(v);
         },
         backgroundColor: const Color(0xFF5AA0FF),
         elevation: 6,

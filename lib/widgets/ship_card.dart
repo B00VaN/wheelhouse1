@@ -23,7 +23,7 @@ class ShipCard extends StatelessWidget {
             width: iconBoxSize,
             height: iconBoxSize,
             decoration: BoxDecoration(
-              color: colors.surfaceVariant,
+              color: colors.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
