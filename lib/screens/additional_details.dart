@@ -5,13 +5,109 @@ import '../models/voyage.dart';
 const Color _darkBg = Color(0xFF121216);
 const Color _darkAppBar = Color(0xFF1E1E20);
 const Color _darkTab = Color(0xFF232328);
-const Color _darkMetrics = Color(0xFF1B1B1E);
 const Color _darkInfo = Color(0xFF2B2730);
 
-class AdditionalDetailsScreen extends StatelessWidget {
+class AdditionalDetailsScreen extends StatefulWidget {
   final Voyage? voyage;
 
   const AdditionalDetailsScreen({super.key, this.voyage});
+
+  @override
+  State<AdditionalDetailsScreen> createState() => _AdditionalDetailsScreenState();
+}
+
+class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
+  final Map<String, TextEditingController> _c = {};
+  bool _editing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // controllers for header fields
+    final keys = [
+      'departurePort',
+      'arrivalPort',
+      'etdLocal',
+      'etaLocal',
+      'etbLocal',
+      // info boxes / upper limits
+      'purpose',
+      'loadingCondition',
+      'charterer',
+      'aft',
+      'fwd',
+      'speed',
+      'hfo',
+      'rpm',
+      'load',
+    ];
+    for (var k in keys) _c[k] = TextEditingController();
+    final v = widget.voyage;
+    if (v != null) {
+      _c['departurePort']?.text = v.departurePort;
+      _c['arrivalPort']?.text = v.arrivalPort;
+      _c['etdLocal']?.text = v.etdLocal;
+      _c['etaLocal']?.text = v.etaLocal;
+      _c['etbLocal']?.text = v.etbLocal;
+      _c['purpose']?.text = v.upperLimits['purpose'] ?? '';
+      _c['loadingCondition']?.text = v.upperLimits['loadingCondition'] ?? '';
+      _c['charterer']?.text = v.upperLimits['charterer'] ?? '';
+      _c['aft']?.text = v.upperLimits['aft'] ?? '';
+      _c['fwd']?.text = v.upperLimits['fwd'] ?? '';
+      _c['speed']?.text = v.upperLimits['speed'] ?? '';
+      _c['hfo']?.text = v.upperLimits['hfo'] ?? '';
+      _c['rpm']?.text = v.upperLimits['rpm'] ?? '';
+      _c['load']?.text = v.upperLimits['load'] ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    for (var c in _c.values) c.dispose();
+    super.dispose();
+  }
+
+  String _val(String key, String fallback) {
+    final t = _c[key]?.text;
+    if (t != null && t.isNotEmpty) return t;
+    return fallback;
+  }
+
+  Widget _maybeEditable(String key, String fallback, TextStyle? style, {bool alignRight = false}) {
+    if (!_editing) return Text(_val(key, fallback), style: style, textAlign: alignRight ? TextAlign.right : TextAlign.left);
+    return TextFormField(
+      controller: _c[key],
+      style: style,
+      textAlign: alignRight ? TextAlign.right : TextAlign.left,
+      decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 4)),
+    );
+  }
+
+  void _saveAndPop() {
+    final id = widget.voyage?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final updated = Voyage(
+      id: id,
+      title: widget.voyage?.title ?? '',
+      departurePort: _c['departurePort']?.text ?? widget.voyage?.departurePort ?? '',
+      arrivalPort: _c['arrivalPort']?.text ?? widget.voyage?.arrivalPort ?? '',
+      etdLocal: _c['etdLocal']?.text ?? widget.voyage?.etdLocal ?? '',
+      etaLocal: _c['etaLocal']?.text ?? widget.voyage?.etaLocal ?? '',
+      etbLocal: _c['etbLocal']?.text ?? widget.voyage?.etbLocal ?? '',
+      fixedEta: widget.voyage?.fixedEta ?? false,
+      upperLimits: {
+        'purpose': _c['purpose']?.text ?? widget.voyage?.upperLimits['purpose'] ?? '',
+        'loadingCondition': _c['loadingCondition']?.text ?? widget.voyage?.upperLimits['loadingCondition'] ?? '',
+        'charterer': _c['charterer']?.text ?? widget.voyage?.upperLimits['charterer'] ?? '',
+        'aft': _c['aft']?.text ?? widget.voyage?.upperLimits['aft'] ?? '',
+        'fwd': _c['fwd']?.text ?? widget.voyage?.upperLimits['fwd'] ?? '',
+        'speed': _c['speed']?.text ?? widget.voyage?.upperLimits['speed'] ?? '',
+        'hfo': _c['hfo']?.text ?? widget.voyage?.upperLimits['hfo'] ?? '',
+        'rpm': _c['rpm']?.text ?? widget.voyage?.upperLimits['rpm'] ?? '',
+        'load': _c['load']?.text ?? widget.voyage?.upperLimits['load'] ?? '',
+      },
+    );
+    Navigator.of(context).pop(updated);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +115,8 @@ class AdditionalDetailsScreen extends StatelessWidget {
     final text = Theme.of(context).textTheme;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final lightFill = const Color(0xFFF2F2F2);
+    // Slightly darker light-mode fill so panels contrast better against page background
+    final lightFill = const Color(0xFFE0E0E0);
 
     return Scaffold(
       // Use consistent ColorScheme values; prefer `background` for page background
@@ -29,15 +126,51 @@ class AdditionalDetailsScreen extends StatelessWidget {
         backgroundColor: isDark ? _darkAppBar : colors.surface,
         iconTheme: IconThemeData(color: colors.onSurface),
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.of(context).pop()),
-        title: Text(voyage?.title ?? 'VYG-L01/23', style: text.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+        leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop(null)),
+        title: Text(widget.voyage?.title ?? 'VYG-L01/23', style: text.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.check)),
-          IconButton(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.close)),
+          IconButton(
+            onPressed: _editing ? _saveAndPop : null,
+            icon: const Icon(Icons.check),
+          ),
+          IconButton(onPressed: () => Navigator.of(context).pop(null), icon: const Icon(Icons.close)),
         ],
       ),
       body: SingleChildScrollView(
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          // Details under title: FROM/TO, ATD/ETA and progress bar
+          Container(
+            color: isDark ? _darkAppBar : colors.surface,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(children: [
+              Row(children: [
+                Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('FROM', style: text.labelSmall?.copyWith(color: colors.onSurfaceVariant)),
+                  const SizedBox(height: 6),
+                  _maybeEditable('departurePort', widget.voyage?.departurePort ?? 'Ellefsen Harbor (AQ)', text.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  Text('ATD (UTC)', style: text.labelSmall?.copyWith(color: colors.onSurfaceVariant)),
+                  const SizedBox(height: 6),
+                  _maybeEditable('etdLocal', widget.voyage?.etdLocal ?? '31/08/2025', text.bodySmall),
+                ])),
+                const SizedBox(width: 12),
+                Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Text('TO', style: text.labelSmall?.copyWith(color: colors.onSurfaceVariant)),
+                  const SizedBox(height: 6),
+                  _maybeEditable('arrivalPort', widget.voyage?.arrivalPort ?? 'Ellefsen Harbor (AQ)', text.titleSmall?.copyWith(fontWeight: FontWeight.w700), alignRight: true),
+                  const SizedBox(height: 8),
+                  Text('ETA (UTC)', style: text.labelSmall?.copyWith(color: colors.onSurfaceVariant)),
+                  const SizedBox(height: 6),
+                  _maybeEditable('etaLocal', widget.voyage?.etaLocal ?? '15/01/2026', text.bodySmall, alignRight: true),
+                ])),
+              ]),
+              const SizedBox(height: 12),
+              // (header progress removed - moved below)
+            ]),
+          ),
+
           // Map placeholder
           Stack(children: [
             SizedBox(height: 180, child: Image.network('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg', fit: BoxFit.cover, width: double.infinity)),
@@ -68,9 +201,33 @@ class AdditionalDetailsScreen extends StatelessWidget {
               Row(children: [
                 Expanded(child: Row(children: [Icon(Icons.refresh, color: const Color(0xFF00C8A0)), const SizedBox(width: 8), Text('Updated 10 minutes ago', style: text.bodySmall)])),
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    if (!_editing) {
+                      setState(() => _editing = true);
+                    } else {
+                      // cancel edits: restore controllers to original voyage values
+                      final v = widget.voyage;
+                      if (v != null) {
+                        _c['departurePort']?.text = v.departurePort;
+                        _c['arrivalPort']?.text = v.arrivalPort;
+                        _c['etdLocal']?.text = v.etdLocal;
+                        _c['etaLocal']?.text = v.etaLocal;
+                        _c['etbLocal']?.text = v.etbLocal;
+                        _c['purpose']?.text = v.upperLimits['purpose'] ?? '';
+                        _c['loadingCondition']?.text = v.upperLimits['loadingCondition'] ?? '';
+                        _c['charterer']?.text = v.upperLimits['charterer'] ?? '';
+                        _c['aft']?.text = v.upperLimits['aft'] ?? '';
+                        _c['fwd']?.text = v.upperLimits['fwd'] ?? '';
+                        _c['speed']?.text = v.upperLimits['speed'] ?? '';
+                        _c['hfo']?.text = v.upperLimits['hfo'] ?? '';
+                        _c['rpm']?.text = v.upperLimits['rpm'] ?? '';
+                        _c['load']?.text = v.upperLimits['load'] ?? '';
+                      }
+                      setState(() => _editing = false);
+                    }
+                  },
                   icon: const Icon(Icons.edit),
-                  label: const Text('EDIT'),
+                  label: Text(_editing ? 'CANCEL' : 'EDIT'),
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF9B59B6), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), elevation: 0),
                 )
               ]),
@@ -104,27 +261,27 @@ class AdditionalDetailsScreen extends StatelessWidget {
                 child: Column(children: [
                   Row(children: [
                     Expanded(child: _labelValue(context, 'TOTAL DISTANCE', '1,000 NM')),
-                    Expanded(child: _labelValue(context, 'DISTANCE TO GO', '1,000 NM', alignRight: true)),
+                    Expanded(child: _labelValue(context, 'DISTANCE TO GO', '450 NM', alignRight: true)),
                   ]),
                   const SizedBox(height: 12),
                   Row(children: [
                     _metricSmall(context, 'DRAFT', '20.6 m'),
                     const SizedBox(width: 8),
-                    _metricSmall(context, 'SPEED OG', voyage?.upperLimits['speed'] ?? '15.4 kn'),
+                    _metricSmall(context, 'SPEED OG', _val('speed', widget.voyage?.upperLimits['speed'] ?? '15.4 kn')),
                     const SizedBox(width: 8),
-                    _metricSmall(context, 'COURSE OG', voyage?.upperLimits['course'] ?? '0.0°'),
+                    _metricSmall(context, 'COURSE OG', widget.voyage?.upperLimits['course'] ?? '0.0°'),
                     const SizedBox(width: 8),
-                    _metricSmall(context, 'HEADING', voyage?.upperLimits['heading'] ?? '0.0°'),
+                    _metricSmall(context, 'HEADING', widget.voyage?.upperLimits['heading'] ?? '0.0°'),
                   ]),
                   const SizedBox(height: 8),
                   Row(children: [
-                    _metricSmall(context, 'WIND SPEED', voyage?.upperLimits['wind'] ?? '3.6 kn'),
+                    _metricSmall(context, 'WIND SPEED', widget.voyage?.upperLimits['wind'] ?? '3.6 kn'),
                     const SizedBox(width: 8),
-                    _metricSmall(context, 'WAVES', voyage?.upperLimits['waves'] ?? '6.0 m'),
+                    _metricSmall(context, 'WAVES', widget.voyage?.upperLimits['waves'] ?? '6.0 m'),
                     const SizedBox(width: 8),
-                    _metricSmall(context, 'CURRENT', voyage?.upperLimits['current'] ?? '0.0 kn'),
+                    _metricSmall(context, 'CURRENT', widget.voyage?.upperLimits['current'] ?? '0.0 kn'),
                     const SizedBox(width: 8),
-                    _metricSmall(context, 'SWELL', voyage?.upperLimits['swell'] ?? '0.0°'),
+                    _metricSmall(context, 'SWELL', widget.voyage?.upperLimits['swell'] ?? '0.0°'),
                   ])
                 ]),
               ),
@@ -135,24 +292,24 @@ class AdditionalDetailsScreen extends StatelessWidget {
 
               // Detail cards / fields
                 Wrap(spacing: 12, runSpacing: 12, children: [
-                _infoBox(context, 'ETB (UTC)', voyage?.etbLocal ?? '2021-08-06 10:00', lightFill: lightFill),
-                _infoBox(context, 'ETD (UTC)', voyage?.etdLocal ?? '2021-08-07 12:00', lightFill: lightFill),
-                _infoBox(context, 'Purpose', voyage?.upperLimits['purpose'] ?? 'Loading', wide: true, lightFill: lightFill),
-                _infoBox(context, 'Loading Condition', voyage?.upperLimits['loadingCondition'] ?? 'Ladden', wide: true, lightFill: lightFill),
-                _infoBox(context, 'Charterer', voyage?.upperLimits['charterer'] ?? 'Charterer Company Name', wide: true, lightFill: lightFill),
-                _infoBox(context, 'Departure Draft AFT', voyage?.upperLimits['aft'] ?? '20.6', lightFill: lightFill),
-                _infoBox(context, 'Departure Draft FWD', voyage?.upperLimits['fwd'] ?? '20.6', lightFill: lightFill),
-                _infoBox(context, 'Optimization Settings', voyage?.fixedEta == true ? 'Fixed ETA' : 'Save Fuel', wide: true, lightFill: lightFill),
+                _infoBox(context, 'ETB (UTC)', _val('etbLocal', widget.voyage?.etbLocal ?? ''), lightFill: lightFill, controllerKey: 'etbLocal'),
+                _infoBox(context, 'ETD (UTC)', _val('etdLocal', widget.voyage?.etdLocal ?? ''), lightFill: lightFill, controllerKey: 'etdLocal'),
+                _infoBox(context, 'Purpose', _val('purpose', widget.voyage?.upperLimits['purpose'] ?? 'Loading'), wide: true, lightFill: lightFill, controllerKey: 'purpose'),
+                _infoBox(context, 'Loading Condition', _val('loadingCondition', widget.voyage?.upperLimits['loadingCondition'] ?? 'Ladden'), wide: true, lightFill: lightFill, controllerKey: 'loadingCondition'),
+                _infoBox(context, 'Charterer', _val('charterer', widget.voyage?.upperLimits['charterer'] ?? 'Charterer Company Name'), wide: true, lightFill: lightFill, controllerKey: 'charterer'),
+                _infoBox(context, 'Departure Draft AFT', _val('aft', widget.voyage?.upperLimits['aft'] ?? '20.6'), lightFill: lightFill, controllerKey: 'aft'),
+                _infoBox(context, 'Departure Draft FWD', _val('fwd', widget.voyage?.upperLimits['fwd'] ?? '20.6'), lightFill: lightFill, controllerKey: 'fwd'),
+                _infoBox(context, 'Optimization Settings', (widget.voyage?.fixedEta == true) ? 'Fixed ETA' : 'Save Fuel', wide: true, lightFill: lightFill),
               ]),
 
               const SizedBox(height: 18),
               Text('Upper Limit Settings', style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(height: 12),
               Wrap(spacing: 12, runSpacing: 12, children: [
-                _infoBox(context, 'Speed (knots)', voyage?.upperLimits['speed'] ?? '17.00', lightFill: lightFill),
-                _infoBox(context, 'HFO MT / Day', voyage?.upperLimits['hfo'] ?? '85.00', lightFill: lightFill),
-                _infoBox(context, 'RPM', voyage?.upperLimits['rpm'] ?? '260', lightFill: lightFill),
-                _infoBox(context, 'Load %', voyage?.upperLimits['load'] ?? '80', lightFill: lightFill),
+                _infoBox(context, 'Speed (knots)', _val('speed', widget.voyage?.upperLimits['speed'] ?? '17.00'), lightFill: lightFill, controllerKey: 'speed'),
+                _infoBox(context, 'HFO MT / Day', _val('hfo', widget.voyage?.upperLimits['hfo'] ?? '85.00'), lightFill: lightFill, controllerKey: 'hfo'),
+                _infoBox(context, 'RPM', _val('rpm', widget.voyage?.upperLimits['rpm'] ?? '260'), lightFill: lightFill, controllerKey: 'rpm'),
+                _infoBox(context, 'Load %', _val('load', widget.voyage?.upperLimits['load'] ?? '80'), lightFill: lightFill, controllerKey: 'load'),
               ])
             ]),
           )
@@ -190,17 +347,35 @@ class AdditionalDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoBox(BuildContext context, String label, String value, {bool wide = false, Color? lightFill}) {
+  Widget _infoBox(BuildContext context, String label, String value, {bool wide = false, Color? lightFill, String? controllerKey}) {
     final colors = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final width = MediaQuery.of(context).size.width;
-    final boxWidth = wide ? (width - 64) : (width - 64) / 2;
+    // Calculate widths so boxes align with the outer padding and Wrap spacing.
+    // Parent padding is 16 on both sides (total 32). Wrap spacing between boxes is 12.
+    final totalWidth = MediaQuery.of(context).size.width;
+    final innerAvailable = totalWidth - 32; // account for parent horizontal padding
+    final boxWidth = wide ? innerAvailable : (innerAvailable - 12) / 2;
     final bg = isDark ? _darkInfo : (lightFill ?? colors.surfaceVariant);
+    Widget content;
+    if (_editing && controllerKey != null && _c.containsKey(controllerKey)) {
+      content = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _c[controllerKey],
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
+          decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 6)),
+        )
+      ]);
+    } else {
+      content = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant)), const SizedBox(height: 8), Text(value, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700))]);
+    }
+
     return Container(
       width: wide ? double.infinity : (boxWidth),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8), border: Border.all(color: colors.outline.withOpacity(0.08))),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant)), const SizedBox(height: 8), Text(value, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700))]),
+      child: content,
     );
   }
 }

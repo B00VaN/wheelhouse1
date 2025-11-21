@@ -3,7 +3,8 @@ import '../widgets/ship_card.dart';
 import '../models/voyage.dart';
 
 class AddVoyageScreen extends StatefulWidget {
-  const AddVoyageScreen({super.key});
+  final Voyage? voyage;
+  const AddVoyageScreen({super.key, this.voyage});
 
   @override
   State<AddVoyageScreen> createState() => _AddVoyageScreenState();
@@ -42,6 +43,27 @@ class _AddVoyageScreenState extends State<AddVoyageScreen> {
     }
     // set a sample initial value for voyage title
     _controllers['voyageTitle']?.text = 'VYG-L01/23';
+
+    // If editing an existing voyage, populate controllers from it.
+    final v = widget.voyage;
+    if (v != null) {
+      _controllers['voyageTitle']?.text = v.title;
+      _controllers['departurePort']?.text = v.departurePort;
+      _controllers['etdLocal']?.text = v.etdLocal;
+      _controllers['arrivalPort']?.text = v.arrivalPort;
+      _controllers['etaLocal']?.text = v.etaLocal;
+      _controllers['etbLocal']?.text = v.etbLocal;
+      _controllers['purpose']?.text = v.upperLimits['purpose'] ?? '';
+      _controllers['loadingCondition']?.text = v.upperLimits['loadingCondition'] ?? '';
+      _controllers['charterer']?.text = v.upperLimits['charterer'] ?? '';
+      _controllers['aft']?.text = v.upperLimits['aft'] ?? '';
+      _controllers['fwd']?.text = v.upperLimits['fwd'] ?? '';
+      _controllers['upper_speed']?.text = v.upperLimits['speed'] ?? '';
+      _controllers['upper_hfo']?.text = v.upperLimits['hfo'] ?? '';
+      _controllers['upper_rpm']?.text = v.upperLimits['rpm'] ?? '';
+      _controllers['upper_load']?.text = v.upperLimits['load'] ?? '';
+      _fixedEtaSelected = v.fixedEta;
+    }
   }
 
   @override
@@ -158,10 +180,45 @@ class _AddVoyageScreenState extends State<AddVoyageScreen> {
         // use onBackground (black in light theme, white in dark theme).
         backgroundColor: colors.surface,
         iconTheme: IconThemeData(color: colors.onSurface),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(context).pop(null),
+        ),
         title: Text(
-          'ADD NEW VOYAGE',
+          widget.voyage == null ? 'ADD NEW VOYAGE' : 'EDIT VOYAGE',
           style: text.titleLarge?.copyWith(color: colors.onSurface, fontWeight: FontWeight.w600, fontSize: titleSize),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.check),
+            onPressed: () {
+              // Save and return Voyage
+              final id = widget.voyage?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
+              final v = Voyage(
+                id: id,
+                title: _controllers['voyageTitle']?.text ?? '',
+                departurePort: _controllers['departurePort']?.text ?? '',
+                arrivalPort: _controllers['arrivalPort']?.text ?? '',
+                etdLocal: _controllers['etdLocal']?.text ?? '',
+                etaLocal: _controllers['etaLocal']?.text ?? '',
+                etbLocal: _controllers['etbLocal']?.text ?? '',
+                fixedEta: _fixedEtaSelected,
+                upperLimits: {
+                  'speed': _controllers['upper_speed']?.text ?? '',
+                  'hfo': _controllers['upper_hfo']?.text ?? '',
+                  'rpm': _controllers['upper_rpm']?.text ?? '',
+                  'load': _controllers['upper_load']?.text ?? '',
+                  'purpose': _controllers['purpose']?.text ?? '',
+                  'loadingCondition': _controllers['loadingCondition']?.text ?? '',
+                  'charterer': _controllers['charterer']?.text ?? '',
+                  'aft': _controllers['aft']?.text ?? '',
+                  'fwd': _controllers['fwd']?.text ?? '',
+                },
+              );
+              Navigator.of(context).pop(v);
+            },
+          )
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -283,8 +340,8 @@ class _AddVoyageScreenState extends State<AddVoyageScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          // Build Voyage from controllers
-          final id = DateTime.now().millisecondsSinceEpoch.toString();
+          // Build Voyage from controllers; preserve id when editing
+          final id = widget.voyage?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
           final v = Voyage(
             id: id,
             title: _controllers['voyageTitle']?.text ?? '',
@@ -299,6 +356,11 @@ class _AddVoyageScreenState extends State<AddVoyageScreen> {
               'hfo': _controllers['upper_hfo']?.text ?? '',
               'rpm': _controllers['upper_rpm']?.text ?? '',
               'load': _controllers['upper_load']?.text ?? '',
+              'purpose': _controllers['purpose']?.text ?? '',
+              'loadingCondition': _controllers['loadingCondition']?.text ?? '',
+              'charterer': _controllers['charterer']?.text ?? '',
+              'aft': _controllers['aft']?.text ?? '',
+              'fwd': _controllers['fwd']?.text ?? '',
             },
           );
 

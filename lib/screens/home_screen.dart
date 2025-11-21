@@ -122,7 +122,11 @@ class _HomeScreenState extends State<HomeScreen> {
               if (_voyages.isEmpty)
                 VoyageCard(onCreate: (v) => setState(() => _voyages.insert(0, v)))
               else
-                VoyageCard(voyage: _voyages.first, onCreate: (v) => setState(() => _voyages.insert(0, v))),
+                VoyageCard(
+                  voyage: _voyages.first,
+                  onCreate: (v) => setState(() => _voyages.insert(0, v)),
+                  onUpdate: (v) => setState(() => _voyages[0] = v),
+                ),
             ],
           ),
         ),

@@ -6,8 +6,9 @@ import '../screens/add_voyage_screen.dart';
 class VoyageCard extends StatelessWidget {
   final Voyage? voyage;
   final void Function(Voyage)? onCreate;
+  final void Function(Voyage)? onUpdate;
 
-  const VoyageCard({super.key, this.voyage, this.onCreate});
+  const VoyageCard({super.key, this.voyage, this.onCreate, this.onUpdate});
 
   @override
   Widget build(BuildContext context) {
@@ -124,10 +125,13 @@ class VoyageCard extends StatelessWidget {
               color: const Color(0xFF9B59B6),
               shape: const CircleBorder(),
               elevation: 4,
-              child: InkWell(
+                child: InkWell(
                 customBorder: const CircleBorder(),
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => AdditionalDetailsScreen(voyage: voyage)));
+                onTap: () async {
+                  final updated = await Navigator.of(context).push<Voyage?>(MaterialPageRoute(builder: (_) => AdditionalDetailsScreen(voyage: voyage)));
+                  if (updated != null && onUpdate != null) {
+                    onUpdate!(updated);
+                  }
                 },
                 child: const Center(child: Icon(Icons.keyboard_arrow_down, color: Colors.black87, size: 28)),
               ),
