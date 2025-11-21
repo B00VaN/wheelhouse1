@@ -14,6 +14,40 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Voyage> _voyages = [];
+  // simple in-memory notifications for demo
+  List<String> _notifications = [];
+
+  void _showNotifications() {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Notifications'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: _notifications.isEmpty
+                ? const Text('No notifications')
+                : ListView.separated(
+                    shrinkWrap: true,
+                    itemBuilder: (context, i) => ListTile(title: Text(_notifications[i])),
+                    separatorBuilder: (context, i) => const Divider(height: 1),
+                    itemCount: _notifications.length),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('CLOSE')),
+            if (_notifications.isNotEmpty)
+              TextButton(
+                onPressed: () {
+                  setState(() => _notifications.clear());
+                  Navigator.of(context).pop();
+                },
+                child: const Text('CLEAR ALL'),
+              )
+          ],
+        );
+      },
+    );
+  }
 
   // No persistence: keep voyages in-memory. New voyages are added via the
   // `onCreate` callback passed to `VoyageCard`.
@@ -34,7 +68,19 @@ class _HomeScreenState extends State<HomeScreen> {
         iconTheme: IconThemeData(color: colors.onPrimary),
         actionsIconTheme: IconThemeData(color: colors.onPrimary),
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.notifications, color: colors.onPrimary)),
+          Builder(builder: (context) {
+            Widget badgeIcon = Stack(children: [
+              Icon(Icons.notifications, color: colors.onPrimary),
+              if (_notifications.isNotEmpty)
+                Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(padding: const EdgeInsets.all(2), decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle), constraints: const BoxConstraints(minWidth: 16, minHeight: 16), child: Center(child: Text('${_notifications.length}', style: const TextStyle(color: Colors.white, fontSize: 10)))))
+            ]);
+
+            // always show icon-only button (with badge when present)
+            return IconButton(onPressed: _showNotifications, icon: badgeIcon);
+          }),
           // Theme toggle: switch between dark and light modes
           ValueListenableBuilder<ThemeMode>(
             valueListenable: themeNotifier,

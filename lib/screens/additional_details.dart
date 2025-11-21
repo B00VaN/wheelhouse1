@@ -479,7 +479,14 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
   Widget _metricSmall(BuildContext context, String label, String value) {
     final t = Theme.of(context).textTheme;
     return Expanded(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: t.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)), const SizedBox(height: 6), Text(value, style: t.bodyLarge?.copyWith(fontWeight: FontWeight.w700))]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(label, style: t.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant), textAlign: TextAlign.center),
+          const SizedBox(height: 6),
+          Text(value, style: t.bodyLarge?.copyWith(fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+        ],
+      ),
     );
   }
 
