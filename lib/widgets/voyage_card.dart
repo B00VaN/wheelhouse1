@@ -115,7 +115,19 @@ class VoyageCard extends StatelessWidget {
 
         // Footer: updated + View All button
         Row(children: [
-          Expanded(child: Row(children: [Icon(Icons.refresh, color: const Color(0xFF00C8A0), size: 18), const SizedBox(width: 8), Text('Updated 10 minutes ago', style: text.bodySmall)])),
+          Flexible(
+            fit: FlexFit.loose,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 36),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2B2B2B) : Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.04) : Colors.black12),
+              ),
+              child: Row(children: [Icon(Icons.refresh, color: const Color(0xFF00C8A0), size: 13), const SizedBox(width: 6), Text('Updated 10 minutes ago', style: text.bodySmall?.copyWith(fontSize: 12))]),
+            ),
+          ),
           const SizedBox(width: 12),
           // VIEW ALL circular button
           SizedBox(

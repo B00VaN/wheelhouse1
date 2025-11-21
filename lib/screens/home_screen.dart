@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog<void>(
       context: context,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return AlertDialog(
           title: const Text('Notifications'),
           content: SizedBox(
@@ -34,13 +35,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemCount: _notifications.length),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('CLOSE')),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(foregroundColor: isDark ? Colors.white : null),
+              child: const Text('CLOSE'),
+            ),
             if (_notifications.isNotEmpty)
               TextButton(
                 onPressed: () {
                   setState(() => _notifications.clear());
                   Navigator.of(context).pop();
                 },
+                style: TextButton.styleFrom(foregroundColor: isDark ? Colors.white : null),
                 child: const Text('CLEAR ALL'),
               )
           ],
@@ -165,6 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const ShipCard(),
               const SizedBox(height: 16),
+              const SizedBox(height: 16),
               if (_voyages.isEmpty)
                 VoyageCard(onCreate: (v) => setState(() => _voyages.insert(0, v)))
               else
@@ -202,4 +209,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ]),
     );
   }
+
+  
 }

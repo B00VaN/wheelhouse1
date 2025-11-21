@@ -241,7 +241,7 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
                 final newZoom = (_mapCtrl.zoom < 6) ? 6.0 : 3.5;
                 _mapCtrl.move(_markerLatLng, newZoom);
               }, child: _smallCircleIcon(context, Icons.layers)),
-            ]))
+            ])),
           ]),
 
           // Tab-like nav row (responsive)
@@ -294,7 +294,9 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 // Update + Edit
                 Row(children: [
-                  Expanded(child: Row(children: [Icon(Icons.refresh, color: const Color(0xFF00C8A0)), const SizedBox(width: 8), Text('Updated 10 minutes ago', style: text.bodySmall)])),
+                  // Let the badge take available space but allow the button to size itself
+                  Expanded(child: _updatedBadge(context, 'Updated 10 minutes ago')),
+                  const SizedBox(width: 80),
                   ElevatedButton.icon(
                     onPressed: () {
                       if (!_editing) {
@@ -460,6 +462,27 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
       child: Padding(padding: const EdgeInsets.all(8), child: Icon(icon, size: 18, color: colors.onSurface)),
     );
   }
+
+  Widget _updatedBadge(BuildContext context, String label) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF2B2B2B) : Colors.grey.shade200;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: isDark ? Colors.white.withOpacity(0.04) : Colors.black12),
+      ),
+      child: Row(children: [
+        Icon(Icons.refresh, color: const Color(0xFF00C8A0), size: 15),
+        const SizedBox(width: 10),
+        Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: textColor)),
+      ]),
+    );
+  }
+
+  
 
   Widget _tabItem(BuildContext context, IconData icon, String label, {bool active = false, VoidCallback? onTap}) {
     final colors = Theme.of(context).colorScheme;
