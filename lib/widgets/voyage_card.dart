@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/voyage.dart';
+import '../screens/additional_details.dart';
+import '../screens/add_voyage_screen.dart';
 
 class VoyageCard extends StatelessWidget {
   final Voyage? voyage;
@@ -114,16 +116,20 @@ class VoyageCard extends StatelessWidget {
         Row(children: [
           Expanded(child: Row(children: [Icon(Icons.refresh, color: const Color(0xFF00C8A0), size: 18), const SizedBox(width: 8), Text('Updated 10 minutes ago', style: text.bodySmall)])),
           const SizedBox(width: 12),
-          Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(20),
-            color: const Color(0xFF9B59B6),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () {},
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.remove_red_eye, color: Colors.black87), const SizedBox(width: 8), Text('VIEW ALL', style: text.bodyLarge?.copyWith(color: Colors.black87, fontWeight: FontWeight.w800))]),
+          // VIEW ALL circular button
+          SizedBox(
+            width: 56,
+            height: 56,
+            child: Material(
+              color: const Color(0xFF9B59B6),
+              shape: const CircleBorder(),
+              elevation: 4,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => AdditionalDetailsScreen(voyage: voyage)));
+                },
+                child: const Center(child: Icon(Icons.keyboard_arrow_down, color: Colors.black87, size: 28)),
               ),
             ),
           )

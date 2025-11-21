@@ -3,6 +3,7 @@ import '../widgets/ship_card.dart';
 import '../widgets/voyage_card.dart';
 import '../theme/theme_controller.dart';
 import '../models/voyage.dart';
+import 'add_voyage_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -110,20 +111,45 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const ShipCard(),
-            const SizedBox(height: 16),
-            if (_voyages.isEmpty)
-              VoyageCard(onCreate: (v) => setState(() => _voyages.insert(0, v)))
-            else
-              VoyageCard(voyage: _voyages.first, onCreate: (v) => setState(() => _voyages.insert(0, v))),
-          ],
+      body: Stack(children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const ShipCard(),
+              const SizedBox(height: 16),
+              if (_voyages.isEmpty)
+                VoyageCard(onCreate: (v) => setState(() => _voyages.insert(0, v)))
+              else
+                VoyageCard(voyage: _voyages.first, onCreate: (v) => setState(() => _voyages.insert(0, v))),
+            ],
+          ),
         ),
-      ),
+
+        // Floating Add button anchored bottom-right, aligned with card right padding
+        Positioned(
+          right: 39,
+          bottom: 28,
+          child: SizedBox(
+            width: 45,
+            height: 45,
+            child: Material(
+              color: Theme.of(context).colorScheme.secondary,
+              shape: const CircleBorder(),
+              elevation: 8,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () async {
+                  final result = await Navigator.of(context).push<Voyage?>(MaterialPageRoute(builder: (_) => const AddVoyageScreen()));
+                  if (result != null) setState(() => _voyages.insert(0, result));
+                },
+                child: Padding(padding: const EdgeInsets.all(8), child: Icon(Icons.add, color: Theme.of(context).colorScheme.onSecondary, size: 28)),
+              ),
+            ),
+          ),
+        )
+      ]),
     );
   }
 }
